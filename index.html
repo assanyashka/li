@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>lain</title>
+  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=VT323&family=Zen+Maru+Gothic:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      min-height: 100vh;
+      background: #0a0a0c;
+      font-family: "Share Tech Mono", "VT323", monospace;
+      padding: 40px 20px;
+      position: relative;
+      overflow-x: hidden;
+    }
+    
+    @keyframes flicker {
+      0%, 100% { opacity: 1; }
+      92% { opacity: 1; }
+      93% { opacity: 0.8; }
+      94% { opacity: 1; }
+      95% { opacity: 0.6; }
+      96% { opacity: 1; }
+    }
+    
+    @keyframes scanline {
+      0% { transform: translateY(-100%); }
+      100% { transform: translateY(100vh); }
+    }
+    
+    @keyframes glitch1 {
+      0%, 100% { clip-path: inset(0 0 0 0); transform: translate(0); }
+      20% { clip-path: inset(20% 0 60% 0); transform: translate(-3px, 2px); }
+      40% { clip-path: inset(40% 0 40% 0); transform: translate(3px, -2px); }
+      60% { clip-path: inset(60% 0 20% 0); transform: translate(-2px, 1px); }
+      80% { clip-path: inset(80% 0 10% 0); transform: translate(2px, -1px); }
+    }
+    
+    @keyframes float {
+      0%, 100% { transform: translateY(0) rotate(0deg); }
+      50% { transform: translateY(-8px) rotate(1deg); }
+    }
+    
+    @keyframes pulse {
+      0%, 100% { opacity: 0.3; }
+      50% { opacity: 0.6; }
+    }
+    
+    @keyframes blink {
+      0%, 50%, 100% { opacity: 1; }
+      25%, 75% { opacity: 0; }
+    }
+    
+    @keyframes waveText {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-3px); }
+    }
+    
+    @keyframes heartbeat {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.1); }
+    }
+    
+    @keyframes glow {
+      0%, 100% { box-shadow: 0 0 20px rgba(232, 64, 87, 0.3), inset 0 0 20px rgba(232, 64, 87, 0.1); }
+      50% { box-shadow: 0 0 30px rgba(232, 64, 87, 0.5), inset 0 0 30px rgba(232, 64, 87, 0.2); }
+    }
+    
+    .glitch-active {
+      animation: glitch1 0.2s linear;
+    }
+    
+    .wire {
+      position: fixed;
+      width: 2px;
+      background: linear-gradient(180deg, transparent, #e84057, transparent);
+      opacity: 0.3;
+      top: 0;
+    }
+    
+    .grid-overlay {
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(232, 64, 87, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(232, 64, 87, 0.03) 1px, transparent 1px);
+      background-size: 30px 30px;
+      animation: pulse 8s ease-in-out infinite;
+      pointer-events: none;
+    }
+    
+    .scanline {
+      position: fixed;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, transparent, rgba(232, 64, 87, 0.15), transparent);
+      animation: scanline 6s linear infinite;
+      pointer-events: none;
+    }
+    
+    .particle {
+      position: fixed;
+      width: 3px;
+      height: 3px;
+      border-radius: 50%;
+      opacity: 0.6;
+    }
+    
+    .corner-text {
+      position: fixed;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 2px;
+    }
+    
+    .corner-text.top-left {
+      top: 20px;
+      left: 20px;
+      color: rgba(232, 64, 87, 0.5);
+    }
+    
+    .corner-text.bottom-right {
+      bottom: 20px;
+      right: 20px;
+      color: rgba(92, 138, 255, 0.5);
+      animation: flicker 3s infinite;
+    }
+    
+    .container {
+      max-width: 420px;
+      margin: 0 auto;
+      position: relative;
+      z-index: 1;
+    }
+    
+    .main-card {
+      background: linear-gradient(135deg, rgba(15, 15, 20, 0.95), rgba(20, 20, 30, 0.9));
+      border: 1px solid rgba(232, 64, 87, 0.2);
+      border-radius: 20px;
+      padding: 45px 40px;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 0 60px rgba(232, 64, 87, 0.1), inset 0 0 60px rgba(0, 0, 0, 0.3);
+      position: relative;
+      animation: float 8s ease-in-out infinite;
+    }
+    
+    .corner-decoration {
+      position: absolute;
+      width: 40px;
+      height: 40px;
+    }
+    
+    .corner-decoration.top-left {
+      top: -1px;
+      left: -1px;
+      border-top: 2px solid #e84057;
+      border-left: 2px solid #e84057;
+      border-radius: 20px 0 0 0;
+    }
+    
+    .corner-decoration.bottom-right {
+      bottom: -1px;
+      right: -1px;
+      border-bottom: 2px solid #5c8aff;
+      border-right: 2px solid #5c8aff;
+      border-radius: 0 0 20px 0;
+    }
+    
+    .decorative-icons {
+      position: absolute;
+      top: 15px;
+      right: 20px;
+      display: flex;
+      gap: 8px;
+    }
+    
+    .decorative-icons span:first-child {
+      font-size: 14px;
+      opacity: 0.6;
+    }
+    
+    .decorative-icons span:last-child {
+      font-size: 14px;
+      opacity: 0.4;
+      animation: heartbeat 2s ease-in-out infinite;
+    }
+    
+    .avatar-container {
+      width: 150px;
+      height: 150px;
+      margin: 0 auto 30px;
+      position: relative;
+    }
+    
+    .avatar-glow {
+      position: absolute;
+      inset: -8px;
+      border-radius: 50%;
+      background: conic-gradient(from 0deg, #e84057, #5c8aff, #ff9ed2, #e84057);
+      animation: pulse 3s ease-in-out infinite;
+      filter: blur(8px);
+      opacity: 0.6;
+    }
+    
+    .avatar-border {
+      position: absolute;
+      inset: -3px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #e84057, #5c8aff);
+      padding: 3px;
+    }
+    
+    .avatar-border-inner {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      background: #0a0a0c;
+    }
+    
+    .avatar-img {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      object-fit: cover;
+      position: relative;
+      z-index: 1;
+    }
+    
+    .avatar-sparkle {
+      position: absolute;
+      font-size: 14px;
+      text-shadow: 0 0 10px currentColor;
+    }
+    
+    .avatar-sparkle:nth-child(1) { top: -5px; left: 50%; transform: translateX(-50%); color: #e84057; animation: float 2s ease-in-out infinite; }
+    .avatar-sparkle:nth-child(2) { right: -10px; top: 50%; transform: translateY(-50%); color: #ff9ed2; animation: float 2.5s ease-in-out infinite 0.3s; }
+    .avatar-sparkle:nth-child(3) { bottom: -5px; left: 50%; transform: translateX(-50%); color: #5c8aff; animation: float 3s ease-in-out infinite 0.6s; }
+    .avatar-sparkle:nth-child(4) { left: -10px; top: 50%; transform: translateY(-50%); color: #e84057; animation: float 3.5s ease-in-out infinite 0.9s; }
+    
+    .name {
+      text-align: center;
+      font-size: 28px;
+      font-weight: 400;
+      color: #fff;
+      margin-bottom: 8px;
+      font-family: 'Share Tech Mono', monospace;
+      letter-spacing: 4px;
+      text-shadow: 0 0 20px rgba(232, 64, 87, 0.5);
+      transition: text-shadow 0.1s;
+    }
+    
+    .name.glitch-active {
+      text-shadow: -2px 0 #e84057, 2px 0 #5c8aff;
+    }
+    
+    .subtitle {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    
+    .subtitle-bracket {
+      color: #e84057;
+      font-size: 13px;
+      letter-spacing: 3px;
+      font-family: 'Share Tech Mono', monospace;
+    }
+    
+    .subtitle-text {
+      color: rgba(255, 158, 210, 0.8);
+      font-size: 14px;
+      letter-spacing: 2px;
+    }
+    
+    .bio-box {
+      background: rgba(232, 64, 87, 0.05);
+      border: 1px solid rgba(232, 64, 87, 0.15);
+      border-radius: 12px;
+      padding: 25px;
+      margin-bottom: 25px;
+      position: relative;
+    }
+    
+    .bio-prompt {
+      position: absolute;
+      top: -10px;
+      left: 20px;
+      background: #0f0f14;
+      padding: 2px 10px;
+      font-size: 11px;
+      color: #5c8aff;
+      font-family: 'Share Tech Mono', monospace;
+      letter-spacing: 1px;
+    }
+    
+    .info-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+    }
+    
+    .info-row:last-child {
+      margin-bottom: 0;
+    }
+    
+    .info-label {
+      color: #5c8aff;
+      font-size: 12px;
+      letter-spacing: 1px;
+      min-width: 80px;
+    }
+    
+    .info-value {
+      color: rgba(255, 255, 255, 0.85);
+      font-size: 14px;
+    }
+    
+    .info-value.age {
+      color: #e84057;
+      text-shadow: 0 0 10px rgba(232, 64, 87, 0.5);
+    }
+    
+    .info-value.hobbies {
+      color: rgba(255, 158, 210, 0.9);
+    }
+    
+    .info-small {
+      font-size: 10px;
+      color: rgba(255, 255, 255, 0.3);
+      margin-left: 5px;
+    }
+    
+    .info-icon {
+      font-size: 12px;
+      margin-left: 5px;
+    }
+    
+    .quote-section {
+      text-align: center;
+      padding: 20px 0;
+      border-top: 1px solid rgba(232, 64, 87, 0.1);
+      border-bottom: 1px solid rgba(232, 64, 87, 0.1);
+    }
+    
+    .quote-text {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 12px;
+      color: rgba(92, 138, 255, 0.6);
+      letter-spacing: 1px;
+      margin: 0;
+      line-height: 1.8;
+    }
+    
+    .quote-text span {
+      color: rgba(232, 64, 87, 0.6);
+    }
+    
+    .telegram-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      margin-top: 25px;
+      padding: 16px 30px;
+      background: linear-gradient(135deg, rgba(232, 64, 87, 0.1), rgba(92, 138, 255, 0.1));
+      border: 1px solid rgba(232, 64, 87, 0.3);
+      border-radius: 12px;
+      text-decoration: none;
+      color: #fff;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 14px;
+      letter-spacing: 2px;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .telegram-btn::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(232, 64, 87, 0.2), rgba(92, 138, 255, 0.2));
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+    
+    .telegram-btn:hover {
+      border-color: #e84057;
+      transform: translateY(-2px);
+      box-shadow: 0 0 30px rgba(232, 64, 87, 0.3), inset 0 0 20px rgba(232, 64, 87, 0.1);
+    }
+    
+    .telegram-btn:hover::before {
+      opacity: 1;
+    }
+    
+    .telegram-btn .icon {
+      font-size: 18px;
+      position: relative;
+      z-index: 1;
+    }
+    
+    .telegram-btn .text {
+      position: relative;
+      z-index: 1;
+    }
+    
+    .telegram-btn .arrow {
+      color: #e84057;
+      position: relative;
+      z-index: 1;
+      transition: transform 0.3s ease;
+    }
+    
+    .telegram-btn:hover .arrow {
+      transform: translateX(5px);
+    }
+    
+    .footer-icons {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 15px;
+      margin-top: 25px;
+    }
+    
+    .footer-icons span {
+      font-size: 12px;
+    }
+    
+    .footer-icons span:nth-child(odd) {
+      color: rgba(92, 138, 255, 0.5);
+    }
+    
+    .footer-icons span:nth-child(even) {
+      color: rgba(255, 158, 210, 0.5);
+    }
+    
+    .footer-icons span:nth-child(3) {
+      font-size: 16px;
+    }
+    
+    .cursor-blink {
+      text-align: center;
+      margin-top: 20px;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 12px;
+      color: rgba(232, 64, 87, 0.4);
+    }
+    
+    .cursor-blink span {
+      animation: blink 1s step-end infinite;
+    }
+    
+    .bottom-text {
+      text-align: center;
+      margin-top: 30px;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 10px;
+      color: rgba(255, 255, 255, 0.2);
+      letter-spacing: 3px;
+    }
+  </style>
+</head>
+<body>
+  <div class="wire" style="left: 5%; height: 45%;"></div>
+  <div class="wire" style="left: 17%; height: 60%; transform: rotate(-3deg);"></div>
+  <div class="wire" style="left: 29%; height: 50%; transform: rotate(2deg);"></div>
+  <div class="wire" style="left: 41%; height: 70%; transform: rotate(-1deg);"></div>
+  <div class="wire" style="left: 53%; height: 55%; transform: rotate(4deg);"></div>
+  <div class="wire" style="left: 65%; height: 48%; transform: rotate(-2deg);"></div>
+  <div class="wire" style="left: 77%; height: 65%; transform: rotate(1deg);"></div>
+  <div class="wire" style="left: 89%; height: 52%; transform: rotate(-4deg);"></div>
+
+  <div class="grid-overlay"></div>
+  <div class="scanline"></div>
+
+  <div id="particles"></div>
+
+  <div class="corner-text top-left">LAYER:01</div>
+  <div class="corner-text bottom-right">PROTOCOL:WIRED</div>
+
+  <div class="container">
+    <div class="main-card">
+      <div class="corner-decoration top-left"></div>
+      <div class="corner-decoration bottom-right"></div>
+      
+      <div class="decorative-icons">
+        <span>♡</span>
+        <span>✧</span>
+      </div>
+
+      <div class="avatar-container">
+        <div class="avatar-glow"></div>
+        <div class="avatar-border">
+          <div class="avatar-border-inner"></div>
+        </div>
+        <img src="https://t.me/i/userpic/160/lain_dev.jpg" alt="avatar" class="avatar-img" id="avatar">
+        <span class="avatar-sparkle">✧</span>
+        <span class="avatar-sparkle">♡</span>
+        <span class="avatar-sparkle">✦</span>
+        <span class="avatar-sparkle">♪</span>
+      </div>
+
+      <h1 class="name" id="name">lain</h1>
+
+      <div class="subtitle">
+        <span class="subtitle-bracket">{ </span>
+        <span class="subtitle-text">♡ connected to the wired ♡</span>
+        <span class="subtitle-bracket"> }</span>
+      </div>
+
+      <div class="bio-box">
+        <div class="bio-prompt">~/about.txt</div>
+        
+        <div class="info-row">
+          <span class="info-label">Name:</span>
+          <span class="info-value">Lain</span>
+          <span style="color: #ff9ed2; font-size: 12px;">♡</span>
+        </div>
+        
+        <div class="info-row">
+          <span class="info-label">Birthdate:</span>
+          <span class="info-value">30.06.2008</span>
+        </div>
+        
+        <div class="info-row">
+          <span class="info-label">Age:</span>
+          <span class="info-value age" id="age"></span>
+          <span class="info-small">(precise)</span>
+        </div>
+        
+        <div class="info-row">
+          <span class="info-label">Hobbies:</span>
+          <span class="info-value hobbies">anime, coffee, coding & sleep</span>
+          <span class="info-icon">☕</span>
+        </div>
+      </div>
+
+      <div class="quote-section">
+        <p class="quote-text">
+          "no matter where you go,<br>
+          <span>everyone is connected."</span>
+        </p>
+      </div>
+
+      <a href="https://t.me/lain_dev" target="_blank" class="telegram-btn">
+        <span class="icon">✦</span>
+        <span class="text">@lain_dev</span>
+        <span class="arrow">→</span>
+      </a>
+
+      <div class="footer-icons">
+        <span style="animation: waveText 2s ease-in-out infinite;">✧</span>
+        <span style="animation: waveText 2s ease-in-out infinite 0.15s;">♡</span>
+        <span style="animation: waveText 2s ease-in-out infinite 0.3s;">✦</span>
+        <span style="animation: waveText 2s ease-in-out infinite 0.45s;">♡</span>
+        <span style="animation: waveText 2s ease-in-out infinite 0.6s;">✧</span>
+      </div>
+
+      <div class="cursor-blink">
+        <span>▊</span>
+      </div>
+    </div>
+
+    <p class="bottom-text">PRESENT DAY ✧ PRESENT TIME</p>
+  </div>
+
+  <script>
+    const birthDate = new Date(2008, 5, 30);
+    
+    function calculateAge() {
+      const now = new Date();
+      const diff = now - birthDate;
+      const ageInYears = diff / (1000 * 60 * 60 * 24 * 365.25);
+      document.getElementById('age').textContent = ageInYears.toFixed(4) + ' y.o.';
+    }
+    
+    calculateAge();
+    setInterval(calculateAge, 60000);
+
+    function createParticles() {
+      const container = document.getElementById('particles');
+      const colors = ['#e84057', '#5c8aff', '#ff9ed2'];
+      
+      for (let i = 0; i < 15; i++) {
+        const particle = document.createElement('div');
+        particle.className = 'particle';
+        particle.style.left = Math.random() * 100 + '%';
+        particle.style.top = Math.random() * 100 + '%';
+        particle.style.background = colors[i % 3];
+        particle.style.boxShadow = `0 0 ${5 + i}px ${colors[i % 3]}`;
+        particle.style.animation = `float ${4 + i * 0.5}s ease-in-out infinite`;
+        particle.style.animationDelay = `${i * 0.3}s`;
+        container.appendChild(particle);
+      }
+    }
+    
+    createParticles();
+
+    function triggerGlitch() {
+      const avatar = document.getElementById('avatar');
+      const name = document.getElementById('name');
+      
+      avatar.classList.add('glitch-active');
+      name.classList.add('glitch-active');
+      
+      setTimeout(() => {
+        avatar.classList.remove('glitch-active');
+        name.classList.remove('glitch-active');
+      }, 150);
+    }
+    
+    setInterval(triggerGlitch, 4000);
+  </script>
+</body>
+</html>
